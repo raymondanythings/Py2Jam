@@ -5,7 +5,7 @@ import subprocess
 class VideoSprite(pygame.sprite.Sprite):
     FFMPEG_BIN = "/usr/local/bin/ffmpeg"   # Full path to ffmpeg executable
 
-    def __init__(self, rect, filename, FPS=30.16):  # <-----   !--- frames mismatched ---!
+    def __init__(self, rect, filename, FPS=30):  # <-----   !--- frames mismatched ---!
         pygame.sprite.Sprite.__init__(self)
         command = [self.FFMPEG_BIN,
                    '-loglevel', 'quiet',
@@ -43,3 +43,4 @@ class VideoSprite(pygame.sprite.Sprite):
                         (self.rect.width, self.rect.height), pygame.HWSURFACE)
                     self.image.fill((0, 0, 0))
                     self.video_stop = True
+ 
