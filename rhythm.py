@@ -4,6 +4,7 @@ from videos import *
 import os
 from note_effect import *
 from math import floor
+import timeit
 
 # /\/\/\/\/\/\/\/\/\/\/\ README /\/\/\/\/\/\/\/\/\/\/\
 #                                                   #
@@ -52,6 +53,12 @@ for x in range(1, 61):
 
 
 # -------- Function
+
+def getRuntime():
+    end = timeit.default_timer()
+    runtime = int((end - start) * 1000)
+    return runtime
+
 
 def sort_sprites(list, position, size):
     sp = EffectSprite(list, position, size)
@@ -140,6 +147,37 @@ def draw_combo(combo):
             screen.blit(S_C, (95, pos_y))
             screen.blit(T_C, (52, pos_y))
             screen.blit(FF_C, (9, pos_y))
+
+
+# create Explosion class
+class Explosion(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        pygame.sprite.Sprite.__init__(self)
+        self.images = []
+        for num in range(1, 11):
+            img = pygame.image.load(
+                f"{PATH(CWD,SRC,'effect','click_1_%s.png')}" % num)
+            img = pygame.transform.scale(img, (100, 100))
+            self.images.append(img)
+        self.index = 0
+        self.image = self.images[self.index]
+        self.rect = self.image.get_rect()
+        self.rect.center = [x, y]
+        self.counter = 0
+
+    def update(self):
+        explosion_speed = 2.5
+        # update explosion animation
+        self.counter += 1
+
+        if self.counter >= explosion_speed and self.index < len(self.images) - 1:
+            self.counter = 0
+            self.index += 1
+            self.image = self.images[self.index]
+
+        # if the animation is complete, reset animation index
+        if self.index >= len(self.images) - 1 and self.counter >= explosion_speed:
+            self.kill()
 
     # -------- Basic settings
 pygame.init()
@@ -253,6 +291,8 @@ sprite_group = pygame.sprite.Group()
 sprite_group.add(video_sprite1)
 
 
+explosion_group = pygame.sprite.Group()
+
 combo = 0
 div = 0
 beat = 0
@@ -260,12 +300,12 @@ bar = 0
 ba = []
 
 t = 0
-
+start = timeit.default_timer()
 screen.fill(color_white)
 while playing:
+    runtime = getRuntime()
     start_clock = round(pygame.time.get_ticks()*0.001, 1)
-
-
+    print(runtime)
 # Define ms
 
     if t == start_clock:
@@ -278,7 +318,7 @@ while playing:
 
     if start_clock % BPS == 0:
         pass
-    if start_clock >= 8:
+    if start_clock >= 1:
         pygame.mixer.music.unpause()
         screen.fill(color_white)
         sprite_group.draw(screen)
@@ -312,6 +352,13 @@ while playing:
                 draw_combo(combo)
                 combo += 1
 
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            pos = pygame.mouse.get_pos()
+            explosion = Explosion(pos[0], pos[1])
+            explosion_group.add(explosion)
+
+    explosion_group.draw(screen)
+    explosion_group.update()
     if white[0] == 1:
         screen.blit(white_note, (3, 487))
         screen.blit(white_blur, (4, 0))
@@ -396,5 +443,5 @@ while playing:
         f"{PATH(CWD, SRC,'notes','note_flat_blue.png')}", 143, note_y)
     note7 = MakeNote(
         f"{PATH(CWD, SRC,'notes','note_flat_white.png')}", 164, note_y)
-    pygame.display.flip()
-    clock.tick(60)
+    pygame.display.update()
+    clock.tick(70)
